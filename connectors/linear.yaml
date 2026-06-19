@@ -1,0 +1,18 @@
+sourceId: linear
+name: Linear Issue Events
+enabled: true
+signature:
+  strategy: github
+  signatureHeader: linear-signature
+  secret: linear_secret_replace_me
+outputDescription: >
+  Produce a normalized product work event with provider, eventType, action,
+  issueId, issueIdentifier, title, teamKey, actorEmail, and occurredAt when available.
+destination:
+  url: https://example.com/internal/webhooks/linear
+  method: POST
+  headers:
+    x-hooksmith-source: linear
+  maxAttempts: 5
+  timeoutMs: 10000
+connectorVersion: 1.0.0
