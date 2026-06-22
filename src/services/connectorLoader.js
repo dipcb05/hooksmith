@@ -14,7 +14,7 @@ const ConnectorSchema = z.object({
     secretHeader: z.string().optional(),
     signatureHeader: z.string().optional(),
     timestampHeader: z.string().optional(),
-    secret: z.string().min(1)
+    secret: z.string().optional()
   }),
   outputDescription: z.string().min(1),
   destination: z.object({
@@ -24,6 +24,7 @@ const ConnectorSchema = z.object({
     maxAttempts: z.number().int().min(1).max(25).default(5),
     timeoutMs: z.number().int().min(1000).max(60000).default(10000)
   }),
+  outputLanguage: z.enum(['javascript', 'python', 'php', 'java', 'csharp', 'go', 'ruby', 'cpp']).default('javascript'),
   connectorVersion: z.string().default('1.0.0')
 });
 
@@ -35,9 +36,10 @@ export async function loadConnectors() {
   for (const file of yamlFiles) {
     const document = yaml.load(await fs.readFile(path.join(dir, file), 'utf8'));
     const connector = ConnectorSchema.parse(document);
+    const { sourceId, ...rest } = connector;
     await Source.findOneAndUpdate(
-      { sourceId: connector.sourceId },
-      { $setOnInsert: connector },
+      { sourceId },
+      { $set: rest },
       { upsert: true, new: true }
     );
   }

@@ -10,8 +10,7 @@ const DlqSchema = new Schema(
     errorStack: { type: String },
     payload: { type: Schema.Types.Mixed },
     replayable: { type: Boolean, default: true },
-    replayedAt: { type: Date },
-    createdAt: { type: Date, default: Date.now, index: true }
+    replayedAt: { type: Date }
   },
   { timestamps: true }
 );

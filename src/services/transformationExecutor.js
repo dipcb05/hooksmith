@@ -41,5 +41,5 @@ export function executeTransformation(functionCode, payload) {
   if (result && typeof result.then === 'function') {
     throw new Error('Async transformations are not allowed');
   }
-  return result;
+  return JSON.parse(JSON.stringify(result));
 }

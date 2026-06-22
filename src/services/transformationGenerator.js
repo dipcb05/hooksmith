@@ -1,13 +1,26 @@
-import OpenAI from 'openai';
 import { config } from '../config.js';
 import { sha256 } from '../utils/crypto.js';
 import { validateTransformationCode } from './transformationExecutor.js';
 
-const openai = config.openaiApiKey ? new OpenAI({ apiKey: config.openaiApiKey }) : null;
-
 export async function generateTransformation({ source, schemaShape }) {
-  if (!openai) {
-    throw new Error('OPENAI_API_KEY is required for transformation generation');
+  const providerName = String(config.aiProvider || 'openai').toLowerCase();
+
+  let driver;
+  switch (providerName) {
+    case 'openai':
+      driver = await import('./ai/openai.js');
+      break;
+    case 'gemini':
+      driver = await import('./ai/gemini.js');
+      break;
+    case 'claude':
+      driver = await import('./ai/claude.js');
+      break;
+    case 'mcp':
+      driver = await import('./ai/mcp.js');
+      break;
+    default:
+      throw new Error(`Unsupported AI provider: ${config.aiProvider}`);
   }
 
   const prompt = [
@@ -21,25 +34,14 @@ export async function generateTransformation({ source, schemaShape }) {
     `Payload schema: ${JSON.stringify(schemaShape, null, 2)}`
   ].join('\n');
 
-  const completion = await openai.chat.completions.create({
-    model: config.openaiModel,
-    temperature: 0.1,
-    messages: [
-      {
-        role: 'system',
-        content: 'You generate production-safe JavaScript data transformation functions. Return code only.'
-      },
-      { role: 'user', content: prompt }
-    ]
-  });
-
-  const functionCode = stripCodeFence(completion.choices[0]?.message?.content?.trim() || '');
+  const generated = await driver.generate(prompt);
+  const functionCode = stripCodeFence(generated.content);
   validateTransformationCode(functionCode);
 
   return {
     functionCode,
     promptHash: sha256(prompt),
-    model: config.openaiModel
+    model: generated.model
   };
 }
 
@@ -49,3 +51,4 @@ function stripCodeFence(content) {
     .replace(/\s*```$/i, '')
     .trim();
 }
+

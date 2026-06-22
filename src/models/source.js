@@ -21,11 +21,12 @@ const SourceSchema = new Schema(
       secretHeader: { type: String },
       signatureHeader: { type: String },
       timestampHeader: { type: String },
-      secret: { type: String, required: true }
+      secret: { type: String }
     },
     outputDescription: { type: String, required: true },
     schemaFingerprint: { type: String },
     destination: { type: DestinationSchema, required: true },
+    outputLanguage: { type: String, enum: ['javascript', 'python', 'php', 'java', 'csharp', 'go', 'ruby', 'cpp'], default: 'javascript' },
     connectorVersion: { type: String, default: '1.0.0' }
   },
   { timestamps: true }
